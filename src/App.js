@@ -3,8 +3,9 @@ import styles from './App.less';
 
 function App() {
   const [trainsInTransit, setTrainsInTransit] = useState('None');
-  const [currentTime, setCurrentTime] = useState('09:00');
+  const [minutesPassed, setMinutesPassed] = useState(0);
   const [journeys, setJourneys] = useState([]);
+  const [isTimerActive, setIsTimerActive] = useState(null);
 
   useEffect(() => {
     fetch('http://localhost:3000/journeys')
@@ -12,16 +13,34 @@ function App() {
       .then((data) => setJourneys(data));
   }, []);
 
+  useEffect(() => {
+    let timerInterval = null;
+    if (isTimerActive) {
+      timerInterval = setInterval(() => {
+        setMinutesPassed((minutesPassed) => minutesPassed + 1);
+      }, 500);
+    } else if (!isTimerActive && minutesPassed !== 0) {
+      clearInterval(timerInterval);
+    }
+    return () => clearInterval(timerInterval);
+  }, [isTimerActive, minutesPassed]);
+
+  function toggleTimer() {
+    setIsTimerActive(!isTimerActive);
+  }
+
   return (
     <div className="App">
       <header>
         <h3>Jiminny Trainspotting</h3>
-        <button hidden>Start</button>
+        <button hidden onClick={toggleTimer}>
+          {isTimerActive ? 'Pause' : 'Start'}
+        </button>
         <section hidden className="header-info">
           <h4>Trains in transit:&nbsp;</h4>
           <p>{trainsInTransit}</p>
           <h4 id="current-time-title">Current time:&nbsp;</h4>
-          <p>{currentTime}</p>
+          <p>{minutesPassed}</p>
         </section>
       </header>
       <table className={styles.grid}>
@@ -50,7 +69,6 @@ function App() {
               <td className="timetable-column">
                 {j.timetable.map((t) => {
                   const journeyDateTime = new Date(t.time);
-                  console.log(journeyDateTime, t.time);
                   return (
                     <p>{`${journeyDateTime.getHours()}:${journeyDateTime.getMinutes()}: ${
                       t.station
