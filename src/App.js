@@ -27,21 +27,27 @@ function App() {
       <table className={styles.grid}>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Route</th>
-            <th>Timetable</th>
-            <th hidden id="next-station-title">
+            <th className="name-column">Name</th>
+            <th className="route-column">Route</th>
+            <th className="name-route-column" hidden>
+              Name / Route
+            </th>
+            <th className="timetable-column">Timetable</th>
+            <th className="next-station-column" hidden>
               Next Station
             </th>
-            <th>Train</th>
+            <th className="train-column">Train</th>
           </tr>
         </thead>
-        {journeys.map((j, i) => (
-          <tbody key={i}>
-            <tr>
-              <td>{j.name}</td>
-              <td>{j.route}</td>
-              <td>
+        <tbody>
+          {journeys.map((j, i) => (
+            <tr key={i}>
+              <td className="name-column">{j.name}</td>
+              <td className="route-column">{j.route}</td>
+              <td hidden className="name-route-column">
+                {j.name} / {j.route}
+              </td>
+              <td className="timetable-column">
                 {j.timetable.map((t) => {
                   const journeyDateTime = new Date(t.time);
                   console.log(journeyDateTime, t.time);
@@ -52,13 +58,13 @@ function App() {
                   );
                 })}
               </td>
-              <td hidden className="next-station-content">
+              <td className="next-station-column" hidden>
                 Next station
               </td>
-              <td>{j.train.name}</td>
+              <td className="train-column">{j.train.name}</td>
             </tr>
-          </tbody>
-        ))}
+          ))}
+        </tbody>
       </table>
     </div>
   );

@@ -22,6 +22,10 @@ body {
         }
       }
 
+      #current-time-title {
+        margin-left: 10px;
+      }
+
       @media (min-width: 1024px) {
         button,
         .header-info {
@@ -34,78 +38,82 @@ body {
       border-collapse: collapse;
       width: 100%;
       font-size: 12px;
+      table-layout: fixed;
       @media (min-width: 768px) {
         font-size: 14px;
       }
-      tr {
-        &:first-child th {
-          color: #ffffff;
-          background-color: rgb(238, 54, 132);
-          text-align: left;
-          padding: 10px 0 10px 10px;
-          &:not(:first-child) {
-            border-left: 1px solid rgb(243, 98, 156);
+      @media (min-width: 1500px) {
+        font-size: 16px;
+      }
+      td,
+      th {
+        padding: 10px;
+        &.name-column,
+        &.route-column {
+          width: 27.5%;
+        }
+        &.timetable-column {
+          width: 30%;
+        }
+        &.train-column {
+          width: 15%;
+        }
+        @media (min-width: 1024px) and (max-width: 1299px) {
+          &.name-column,
+          &.route-column {
+            display: none;
           }
-          &:first-child,
-          &:nth-child(2) {
-            width: 27.5%;
+          &.name-route-column {
+            display: table-cell;
+            width: 54%;
           }
-          &:nth-child(3) {
-            width: 30%;
+          &.timetable-column {
+            width: 579px;
           }
-          &:nth-child(4) {
+          &.next-station-column,
+          &.train-column {
+            display: table-cell;
+            width: 23%;
+          }
+        }
+        @media (min-width: 1300px) {
+          &.name-column,
+          &.route-column {
+            display: table-cell;
+            width: 35%;
+          }
+          &.name-route-column {
+            display: none;
+          }
+          &.timetable-column {
+            width: 579px;
+          }
+          &.next-station-column,
+          &.train-column {
+            display: table-cell;
             width: 15%;
           }
         }
-        // &:not(:first-child) {
-        //   font-size: 14px;
-        // }
       }
-    }
-
-    main {
-      display: grid;
-      grid-template-rows: 50px auto;
-
-      header {
-        display: grid;
-        align-items: center;
-        grid-template-columns: 1fr 1fr 2fr 0.5fr;
-        color: #ffffff;
-        background-color: rgb(219, 72, 131);
-
-        h4 {
-          padding-left: 10px;
-          margin: 0;
-          &#next-station-title {
-            @media (min-width: 1024px) {
-              display: block;
-            }
+      thead {
+        tr th {
+          color: #ffffff;
+          background-color: rgb(238, 54, 132);
+          text-align: left;
+          &:not(:first-child) {
+            border-left: 1px solid rgb(243, 98, 156);
           }
         }
       }
-
-      article {
-        display: grid;
-        align-items: center;
-        grid-template-columns: 1fr 1fr 1.5fr 0.5fr;
-        > div {
-          padding-left: 10px;
-          &.next-station-content {
-            @media (min-width: 1024px) {
-              display: block;
-            }
-          }
-        }
-        &:nth-child(odd) {
-          background-color: #ffffff;
-        }
-      }
-
-      section {
+      tbody {
         -moz-box-shadow: 0px 5px 10px #cacaca;
         -webkit-box-shadow: 0px 5px 10px #cacaca;
         box-shadow: 0px 5px 10px #cacaca;
+        tr {
+          &:nth-child(odd) {
+            background-color: white;
+          }
+        }
       }
     }
   }
