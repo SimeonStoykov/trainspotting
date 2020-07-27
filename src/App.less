@@ -1,0 +1,112 @@
+body {
+  background-color: rgb(250, 250, 250);
+  .App {
+    width: 90%;
+    margin: 30px auto;
+
+    > header {
+      display: flex;
+      align-items: center;
+
+      button {
+        height: 25px;
+        margin-left: 20px;
+        cursor: pointer;
+      }
+
+      .header-info {
+        margin-left: auto;
+        h4,
+        p {
+          display: inline-block;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        button,
+        .header-info {
+          display: block;
+        }
+      }
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 12px;
+      @media (min-width: 768px) {
+        font-size: 14px;
+      }
+      tr {
+        &:first-child th {
+          color: #ffffff;
+          background-color: rgb(238, 54, 132);
+          text-align: left;
+          padding: 10px 0 10px 10px;
+          &:not(:first-child) {
+            border-left: 1px solid rgb(243, 98, 156);
+          }
+          &:first-child,
+          &:nth-child(2) {
+            width: 27.5%;
+          }
+          &:nth-child(3) {
+            width: 30%;
+          }
+          &:nth-child(4) {
+            width: 15%;
+          }
+        }
+        // &:not(:first-child) {
+        //   font-size: 14px;
+        // }
+      }
+    }
+
+    main {
+      display: grid;
+      grid-template-rows: 50px auto;
+
+      header {
+        display: grid;
+        align-items: center;
+        grid-template-columns: 1fr 1fr 2fr 0.5fr;
+        color: #ffffff;
+        background-color: rgb(219, 72, 131);
+
+        h4 {
+          padding-left: 10px;
+          margin: 0;
+          &#next-station-title {
+            @media (min-width: 1024px) {
+              display: block;
+            }
+          }
+        }
+      }
+
+      article {
+        display: grid;
+        align-items: center;
+        grid-template-columns: 1fr 1fr 1.5fr 0.5fr;
+        > div {
+          padding-left: 10px;
+          &.next-station-content {
+            @media (min-width: 1024px) {
+              display: block;
+            }
+          }
+        }
+        &:nth-child(odd) {
+          background-color: #ffffff;
+        }
+      }
+
+      section {
+        -moz-box-shadow: 0px 5px 10px #cacaca;
+        -webkit-box-shadow: 0px 5px 10px #cacaca;
+        box-shadow: 0px 5px 10px #cacaca;
+      }
+    }
+  }
+}
