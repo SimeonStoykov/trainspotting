@@ -1,6 +1,6 @@
 body {
   background-color: rgb(250, 250, 250);
-  .App {
+  .app {
     width: 90%;
     margin: 30px auto;
 
@@ -126,16 +126,46 @@ body {
           .stop-lines-row {
             position: relative;
             bottom: 3px;
+            .stop-line {
+              border-left: 1px solid #000000;
+              position: absolute;
+              height: 28px;
+            }
+          }
+          .stop-times-row {
+            position: relative;
+            margin-bottom: 42px;
+            top: 8px;
+            right: 12px;
+            .stop-time {
+              position: absolute;
+              transform: rotate(-90deg);
+              -webkit-transform: rotate(-90deg);
+            }
           }
           .journey-line {
             height: 20px;
-            background-color: red;
+            background-color: #b5651e;
             border-top: 1px solid #000000;
             border-bottom: 1px solid #000000;
           }
           .station-icon {
             width: 20px;
             height: 16px;
+            position: absolute;
+          }
+          .train-icon-wrapper {
+            position: relative;
+            bottom: 20px;
+            padding: 1px;
+            width: 16px;
+            height: 16px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            .train-icon {
+              position: absolute;
+              width: 16px;
+            }
           }
         }
       }

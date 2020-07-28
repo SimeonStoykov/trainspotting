@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useInterval } from './customHooks';
 import { addMinutes, padWithZero } from './helpers';
-import styles from './App.less';
 import undergroundImg from './images/underground.png';
+import trainImg from './images/train.png';
+import './App.less';
+
+const TIMER_DELAY = 500;
+const MAX_JOURNEY_HOUR = 11;
+const WIDTH_FOR_MINUTE = 5;
 
 function App() {
-  const [trainsInTransit, setTrainsInTransit] = useState('None');
+  const [trainsInTransit, setTrainsInTransit] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date(2020, 5, 4, 9, 0));
   const [journeys, setJourneys] = useState([]);
+  const [nextStations, setNextStations] = useState({});
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
   useEffect(() => {
@@ -20,18 +26,76 @@ function App() {
     () => {
       setCurrentTime((currentTime) => addMinutes(currentTime, 1));
     },
-    isTimerRunning ? 500 : null
+    isTimerRunning ? TIMER_DELAY : null
   );
 
   useEffect(() => {
-    console.log(journeys);
-  }, [currentTime, journeys]);
+    const currentHours = currentTime.getHours();
+    if (currentHours < MAX_JOURNEY_HOUR && isTimerRunning) {
+      const currentMinutes = currentTime.getMinutes();
+      journeys.forEach((j) => {
+        const nextStation = j.timetable.find((tti) => {
+          const stopTime = new Date(tti.time);
+          stopTime.setMinutes(
+            stopTime.getMinutes() + stopTime.getTimezoneOffset()
+          );
+          const stopHours = stopTime.getHours();
+          const stopMinutes = stopTime.getMinutes();
+          return (
+            stopHours > currentHours ||
+            (stopHours === currentHours && stopMinutes > currentMinutes)
+          );
+        });
+
+        if (nextStation) {
+          setNextStations((nextStations) => ({
+            ...nextStations,
+            [j.name]: nextStation.station,
+          }));
+        }
+
+        const lastStopInfo = j.timetable[j.timetable.length - 1];
+        const lastStopTime = new Date(lastStopInfo.time);
+        lastStopTime.setMinutes(
+          lastStopTime.getMinutes() + lastStopTime.getTimezoneOffset()
+        );
+        const lastStopHours = lastStopTime.getHours();
+        const lastStopMinutes = lastStopTime.getMinutes();
+        const isTrainAlreadyInArr = trainsInTransit.find(
+          (t) => t.id === j.train.id
+        );
+        if (
+          !isTrainAlreadyInArr &&
+          (currentHours < lastStopHours ||
+            (currentHours === lastStopHours &&
+              currentMinutes < lastStopMinutes))
+        ) {
+          setTrainsInTransit((trainsInTransit) => [
+            ...trainsInTransit,
+            { id: j.train.id, name: j.train.name },
+          ]);
+        } else if (
+          currentHours === lastStopHours &&
+          currentMinutes === lastStopMinutes
+        ) {
+          setTrainsInTransit(
+            trainsInTransit.filter((t) => t.id !== j.train.id)
+          );
+        }
+      });
+    } else if (
+      currentHours === MAX_JOURNEY_HOUR &&
+      trainsInTransit.length > 0
+    ) {
+      setTrainsInTransit([]);
+    }
+  }, [currentTime, journeys, isTimerRunning, trainsInTransit]);
 
   function toggleTimer() {
     setIsTimerRunning((isTimerRunning) => !isTimerRunning);
   }
 
-  function getIcons(journey) {
+  function getJourneyTimetable(journey) {
     if (journey && journey.timetable) {
       const lastStopInfo = journey.timetable[journey.timetable.length - 1];
       const lastStopTime = new Date(lastStopInfo.time);
@@ -43,6 +107,7 @@ function App() {
       const totalMinutes = (lastStopHours - 9) * 60 + lastStopMinutes;
       let stationIcons = [];
       const stopLines = [];
+      const stopTimes = [];
       for (let i = 0; i < journey.timetable.length; i++) {
         const currStop = journey.timetable[i];
         const currStopTime = new Date(currStop.time);
@@ -54,39 +119,60 @@ function App() {
         let minutesToStop = (currStopHours - 9) * 60 + currStopMinutes;
         stationIcons.push(
           <img
+            key={i}
             className="station-icon"
             src={undergroundImg}
-            style={{ position: 'absolute', left: minutesToStop * 5 - 10 }}
+            style={{ left: minutesToStop * WIDTH_FOR_MINUTE - 10 }}
             alt="Underground"
             title={currStop.station}
           />
         );
         stopLines.push(
           <div
-            style={{
-              borderLeft: '1px solid #000000',
-              position: 'absolute',
-              left: minutesToStop * 5,
-              height: '28px',
-            }}
+            key={i}
+            className="stop-line"
+            style={{ left: minutesToStop * WIDTH_FOR_MINUTE }}
           ></div>
         );
+        stopTimes.push(
+          <div
+            key={i}
+            className="stop-time"
+            style={{ left: minutesToStop * WIDTH_FOR_MINUTE - 9 }}
+          >
+            {padWithZero(currStopHours)}:{padWithZero(currStopMinutes)}
+          </div>
+        );
       }
+      let trainLeftPosition =
+        ((currentTime.getHours() - 9) * 60 + currentTime.getMinutes()) *
+          WIDTH_FOR_MINUTE -
+        8;
+      const maxTrainLeftPos = totalMinutes * WIDTH_FOR_MINUTE - 8;
+      if (trainLeftPosition > maxTrainLeftPos)
+        trainLeftPosition = maxTrainLeftPos;
       return (
         <>
           <div className="station-icons-row">{stationIcons}</div>
           <div className="stop-lines-row">{stopLines}</div>
           <div
             className="journey-line"
-            style={{ width: totalMinutes * 5 }}
+            style={{ width: totalMinutes * WIDTH_FOR_MINUTE }}
           ></div>
+          <div
+            className="train-icon-wrapper"
+            style={{ left: trainLeftPosition }}
+          >
+            <img className="train-icon" src={trainImg} alt="Train" />
+          </div>
+          <div className="stop-times-row">{stopTimes}</div>
         </>
       );
     }
   }
 
   return (
-    <div className="App">
+    <div className="app">
       <header>
         <h3>Jiminny Trainspotting</h3>
         <button hidden onClick={toggleTimer}>
@@ -94,7 +180,11 @@ function App() {
         </button>
         <section hidden className="header-info">
           <h4>Trains in transit:&nbsp;</h4>
-          <p>{trainsInTransit}</p>
+          <p>
+            {trainsInTransit.length
+              ? trainsInTransit.map((t) => t.name).join(', ')
+              : 'None'}
+          </p>
           <h4 id="current-time-title">Current time:&nbsp;</h4>
           <p>
             {padWithZero(currentTime.getHours())}:
@@ -102,7 +192,7 @@ function App() {
           </p>
         </section>
       </header>
-      <table className={styles.grid}>
+      <table>
         <thead>
           <tr>
             <th className="name-column">Name</th>
@@ -128,20 +218,24 @@ function App() {
               <td className="timetable-column text">
                 {j.timetable.map((t, timeIndex) => {
                   const journeyDateTime = new Date(t.time);
+                  journeyDateTime.setMinutes(
+                    journeyDateTime.getMinutes() +
+                      journeyDateTime.getTimezoneOffset()
+                  );
                   return (
-                    <p
-                      key={timeIndex}
-                    >{`${journeyDateTime.getHours()}:${journeyDateTime.getMinutes()}: ${
+                    <p key={timeIndex}>{`${padWithZero(
+                      journeyDateTime.getHours()
+                    )}:${padWithZero(journeyDateTime.getMinutes())}: ${
                       t.station
                     }`}</p>
                   );
                 })}
               </td>
               <td className="timetable-column icons" hidden>
-                {getIcons(j)}
+                {getJourneyTimetable(j)}
               </td>
               <td className="next-station-column" hidden>
-                Next station
+                {nextStations[j.name]}
               </td>
               <td className="train-column">{j.train.name}</td>
             </tr>
