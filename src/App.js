@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useInterval } from './customHooks';
+import { addMinutes, padWithZero } from './helpers';
 import styles from './App.less';
+import undergroundImg from './images/underground.png';
 
 function App() {
   const [trainsInTransit, setTrainsInTransit] = useState('None');
-  const [minutesPassed, setMinutesPassed] = useState(0);
+  const [currentTime, setCurrentTime] = useState(new Date(2020, 5, 4, 9, 0));
   const [journeys, setJourneys] = useState([]);
-  const [isTimerActive, setIsTimerActive] = useState(null);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
 
   useEffect(() => {
     fetch('http://localhost:3000/journeys')
@@ -13,20 +16,73 @@ function App() {
       .then((data) => setJourneys(data));
   }, []);
 
+  useInterval(
+    () => {
+      setCurrentTime((currentTime) => addMinutes(currentTime, 1));
+    },
+    isTimerRunning ? 500 : null
+  );
+
   useEffect(() => {
-    let timerInterval = null;
-    if (isTimerActive) {
-      timerInterval = setInterval(() => {
-        setMinutesPassed((minutesPassed) => minutesPassed + 1);
-      }, 500);
-    } else if (!isTimerActive && minutesPassed !== 0) {
-      clearInterval(timerInterval);
-    }
-    return () => clearInterval(timerInterval);
-  }, [isTimerActive, minutesPassed]);
+    console.log(journeys);
+  }, [currentTime, journeys]);
 
   function toggleTimer() {
-    setIsTimerActive(!isTimerActive);
+    setIsTimerRunning((isTimerRunning) => !isTimerRunning);
+  }
+
+  function getIcons(journey) {
+    if (journey && journey.timetable) {
+      const lastStopInfo = journey.timetable[journey.timetable.length - 1];
+      const lastStopTime = new Date(lastStopInfo.time);
+      lastStopTime.setMinutes(
+        lastStopTime.getMinutes() + lastStopTime.getTimezoneOffset()
+      );
+      const lastStopHours = lastStopTime.getHours();
+      const lastStopMinutes = lastStopTime.getMinutes();
+      const totalMinutes = (lastStopHours - 9) * 60 + lastStopMinutes;
+      let stationIcons = [];
+      const stopLines = [];
+      for (let i = 0; i < journey.timetable.length; i++) {
+        const currStop = journey.timetable[i];
+        const currStopTime = new Date(currStop.time);
+        currStopTime.setMinutes(
+          currStopTime.getMinutes() + currStopTime.getTimezoneOffset()
+        );
+        const currStopHours = currStopTime.getHours();
+        const currStopMinutes = currStopTime.getMinutes();
+        let minutesToStop = (currStopHours - 9) * 60 + currStopMinutes;
+        stationIcons.push(
+          <img
+            className="station-icon"
+            src={undergroundImg}
+            style={{ position: 'absolute', left: minutesToStop * 5 - 10 }}
+            alt="Underground"
+            title={currStop.station}
+          />
+        );
+        stopLines.push(
+          <div
+            style={{
+              borderLeft: '1px solid #000000',
+              position: 'absolute',
+              left: minutesToStop * 5,
+              height: '28px',
+            }}
+          ></div>
+        );
+      }
+      return (
+        <>
+          <div className="station-icons-row">{stationIcons}</div>
+          <div className="stop-lines-row">{stopLines}</div>
+          <div
+            className="journey-line"
+            style={{ width: totalMinutes * 5 }}
+          ></div>
+        </>
+      );
+    }
   }
 
   return (
@@ -34,13 +90,16 @@ function App() {
       <header>
         <h3>Jiminny Trainspotting</h3>
         <button hidden onClick={toggleTimer}>
-          {isTimerActive ? 'Pause' : 'Start'}
+          {isTimerRunning ? 'Pause' : 'Start'}
         </button>
         <section hidden className="header-info">
           <h4>Trains in transit:&nbsp;</h4>
           <p>{trainsInTransit}</p>
           <h4 id="current-time-title">Current time:&nbsp;</h4>
-          <p>{minutesPassed}</p>
+          <p>
+            {padWithZero(currentTime.getHours())}:
+            {padWithZero(currentTime.getMinutes())}
+          </p>
         </section>
       </header>
       <table className={styles.grid}>
@@ -66,15 +125,20 @@ function App() {
               <td hidden className="name-route-column">
                 {j.name} / {j.route}
               </td>
-              <td className="timetable-column">
-                {j.timetable.map((t) => {
+              <td className="timetable-column text">
+                {j.timetable.map((t, timeIndex) => {
                   const journeyDateTime = new Date(t.time);
                   return (
-                    <p>{`${journeyDateTime.getHours()}:${journeyDateTime.getMinutes()}: ${
+                    <p
+                      key={timeIndex}
+                    >{`${journeyDateTime.getHours()}:${journeyDateTime.getMinutes()}: ${
                       t.station
                     }`}</p>
                   );
                 })}
+              </td>
+              <td className="timetable-column icons" hidden>
+                {getIcons(j)}
               </td>
               <td className="next-station-column" hidden>
                 Next station
